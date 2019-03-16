@@ -4,13 +4,12 @@
 
 .App-logo {
   animation: App-logo-spin infinite 20s linear;
-  height: 40vmin;
+  height: 10vmin;
   pointer-events: none;
 }
 
 .App-header {
-  background-color: #282c34;
-  min-height: 100vh;
+  border-bottom: 1px solid #282c34;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -21,6 +20,7 @@
 
 .App-link {
   color: #61dafb;
+  font-size: 1rem;
 }
 
 @keyframes App-logo-spin {
