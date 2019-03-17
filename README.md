@@ -4,10 +4,12 @@ This project was bootstrapped with [Create React App](https://github.com/faceboo
 
 ## Thanks
 
+- [react](https://reactjs.org/)
 - [facebook/create-react-app](https://github.com/facebook/create-react-app)
 - [bootstrap](https://getbootstrap.com/docs/4.3/getting-started/introduction/)
 - [reactstrap/reactstrap](https://reactstrap.github.io/)
 - [fkhadra/react-toastify](https://fkhadra.github.io/react-toastify/)
+- [FortAwesome/react-fontawesome](https://github.com/FortAwesome/react-fontawesome)
 - etc
 
 ## Available Scripts
