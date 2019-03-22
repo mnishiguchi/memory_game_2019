@@ -1,50 +1,31 @@
-import {
-  useState,
-  forwardRef,
-  useImperativeHandle
-} from "react";
-import PropTypes from "prop-types";
-import useInterval from "../lib/useInterval";
+import { forwardRef, useImperativeHandle } from 'react';
+import PropTypes from 'prop-types';
+import useCountdownTimer from '../lib/useCountdownTimer';
 
 // A count-down timer
-const Timer = forwardRef(({
-  initialCount,
-  isTicking,
-  onZero,
-  renderTime
-}, ref) => {
-  const [count, setCount] = useState(initialCount);
+const Timer = forwardRef(({ initialCount = 5, isTicking = false, onZero, renderTime }, ref) => {
+  const { count, setCount, resetCount } = useCountdownTimer({
+    initialCount,
+    isTicking,
+    onZero,
+  });
 
-  useInterval(() => {
-    if (isTicking) {
-      if (count > 1) {
-        setCount(count - 1);
-      } else if (count === 1) {
-        setCount(0);
-        onZero();
-      }
-    }
-  }, 1000);
-
+  // expose public functions
   // https://stackoverflow.com/questions/37949981/call-child-method-from-parent
   useImperativeHandle(ref, () => ({
-    resetCount: () => setCount(initialCount),
-    count: () => count
+    setCount,
+    resetCount,
+    count: () => count,
   }));
 
-  return renderTime(count);
+  return renderTime ? renderTime(count) : count;
 });
 
 Timer.propTypes = {
-  initialCount: PropTypes.number.isRequired,
-  isTicking: PropTypes.bool.isRequired,
-  onZero: PropTypes.func.isRequired,
-};
-
-Timer.defaultProps = {
-  initialCount: 5,
-  isTicking: false,
-  onZero: () => console.log("zero"),
+  initialCount: PropTypes.number,
+  isTicking: PropTypes.bool,
+  onZero: PropTypes.func,
+  renderTime: PropTypes.func,
 };
 
 export default Timer;

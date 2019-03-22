@@ -5,6 +5,8 @@ import * as shortid from 'shortid';
 import shuffleArray from '../lib/shuffleArray';
 import availableSymbols from '../data/availableSymbols';
 
+const noop = () => {};
+
 const cardBackgroundColor = card => {
   if (card.isTaken) {
     return '#28a745';
@@ -25,7 +27,12 @@ const cardColor = card => {
   return '#575d64';
 };
 
-const Board = ({ cards, onCardClicked, isPlaying, renderNotice }) => {
+const Board = ({
+  cards = createCards(),
+  isPlaying = false,
+  onCardClicked = noop,
+  renderNotice = noop,
+}) => {
   return (
     <div
       style={{
@@ -79,9 +86,6 @@ const Board = ({ cards, onCardClicked, isPlaying, renderNotice }) => {
 };
 
 Board.propTypes = {
-  renderNotice: PropTypes.func,
-  isPlaying: PropTypes.bool,
-  onCardClicked: PropTypes.func,
   cards: PropTypes.arrayOf(
     PropTypes.shape({
       uuid: PropTypes.string.isRequired,
@@ -90,6 +94,9 @@ Board.propTypes = {
       symbol: PropTypes.string.isRequired,
     }),
   ),
+  isPlaying: PropTypes.bool,
+  renderNotice: PropTypes.func,
+  onCardClicked: PropTypes.func,
 };
 
 const createCard = symbol => ({

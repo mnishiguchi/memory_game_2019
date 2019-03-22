@@ -1,6 +1,7 @@
 // https://stackoverflow.com/a/2450976/3837223
-const shuffleArray = (array) => {
-  let currentIndex = array.length;
+const shuffleArray = (input) => {
+  const output = [...input]
+  let currentIndex = output.length;
   let temporaryValue, randomIndex;
 
   // While there remain elements to shuffle...
@@ -10,12 +11,12 @@ const shuffleArray = (array) => {
     currentIndex -= 1;
 
     // And swap it with the current element.
-    temporaryValue = array[currentIndex];
-    array[currentIndex] = array[randomIndex];
-    array[randomIndex] = temporaryValue;
+    temporaryValue = output[currentIndex];
+    output[currentIndex] = output[randomIndex];
+    output[randomIndex] = temporaryValue;
   }
 
-  return array;
+  return output;
 };
 
 export default shuffleArray;

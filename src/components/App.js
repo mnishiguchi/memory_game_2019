@@ -16,11 +16,13 @@ import './App.css';
 // https://github.com/FortAwesome/react-fontawesome
 library.add(faClock);
 
+const initialcards = createCards().map(card => ({ ...card, isTaken: true }));
+
 // Top level component of the memory game app. Manages game plays.
-const App = ({ initialCount }) => {
+const App = ({ initialCount = 30 }) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [isCompleted, setIsCompleted] = useState(false);
-  const [cards, setCards] = useState(createCards);
+  const [cards, setCards] = useState(initialcards);
   const [score, setScore] = useState(0);
   const [firstCard, setFirstCard] = useState(null);
 
@@ -30,13 +32,10 @@ const App = ({ initialCount }) => {
   const startGame = () => {
     if (isPlaying) return;
 
-    if (isCompleted) {
-      setIsCompleted(false);
-      setCards(createCards);
-      setScore(0);
-      resetTimer();
-    }
-
+    setIsCompleted(false);
+    setCards(createCards);
+    setScore(0);
+    resetTimer();
     setIsPlaying(true);
     toast.info('Game is started. Enjoy!');
   };
@@ -143,14 +142,16 @@ const App = ({ initialCount }) => {
               </code>
             </Col>
             <Col>
-              <img
-                src={logo}
-                className="AppHeader__logo"
-                alt="logo"
-                style={{
-                  animationPlayState: isPlaying ? 'running' : 'paused',
-                }}
-              />
+              <a href="http://mnishiguchi.com">
+                <img
+                  src={logo}
+                  className="AppHeader__logo"
+                  alt="logo"
+                  style={{
+                    animationPlayState: isPlaying ? 'running' : 'paused',
+                  }}
+                />
+              </a>
             </Col>
             <Col style={{ position: 'relative' }}>
               <Timer
@@ -177,12 +178,7 @@ const App = ({ initialCount }) => {
           </Row>
         </CardBody>
 
-        <Board
-          cards={cards}
-          onCardClicked={onCardClicked}
-          isPlaying={isPlaying}
-          renderNotice={() => <div>{'Memory Game'}</div>}
-        />
+        <Board cards={cards} onCardClicked={onCardClicked} isPlaying={isPlaying} />
 
         <CardBody>
           <Row className="py-3">
@@ -201,10 +197,6 @@ const App = ({ initialCount }) => {
       </Card>
     </AppLayout>
   );
-};
-
-App.defaultProps = {
-  initialCount: 30,
 };
 
 export default App;

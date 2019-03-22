@@ -4,13 +4,15 @@ This project was bootstrapped with [Create React App](https://github.com/faceboo
 
 ## Thanks
 
-- [react](https://reactjs.org/)
+- [react ^16.8](https://reactjs.org/)
 - [facebook/create-react-app](https://github.com/facebook/create-react-app)
 - [bootstrap](https://getbootstrap.com/docs/4.3/getting-started/introduction/)
 - [reactstrap/reactstrap](https://reactstrap.github.io/)
 - [fkhadra/react-toastify](https://fkhadra.github.io/react-toastify/)
 - [FortAwesome/react-fontawesome](https://github.com/FortAwesome/react-fontawesome)
-- etc
+- [jest-dom](https://github.com/gnapse/jest-dom)
+- [react-testing-library](https://github.com/kentcdodds/react-testing-library)
+- [etc](https://github.com/mnishiguchi/memory_game_2019/blob/master/package.json)
 
 ## Available Scripts
 
