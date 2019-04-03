@@ -1,14 +1,14 @@
-import React, { useState, useRef } from 'react';
+import React, { useState } from 'react';
 import { Row, Col, Button, Card, CardBody } from 'reactstrap';
 import { toast } from 'react-toastify';
 import { library } from '@fortawesome/fontawesome-svg-core';
 import { faClock } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
+import useCountdownTimer from '../lib/useCountdownTimer';
 import logo from '../assets/logo.png';
 import padNumber from '../lib/padNumber';
 import AppLayout from './AppLayout';
-import Timer from './Timer';
 import Board, { createCards } from './Board';
 import './App.css';
 
@@ -26,8 +26,15 @@ const App = ({ initialCount = 30 }) => {
   const [score, setScore] = useState(0);
   const [firstCard, setFirstCard] = useState(null);
 
-  // ref to call Timer's functions
-  const timerRef = useRef();
+  const { count, resetCount } = useCountdownTimer({
+    initialCount,
+    isTicking: isPlaying,
+    onZero: () => {
+      toast.info(`Time is up! Your score was ${score}.`, { autoClose: 10000 });
+      setIsCompleted(true);
+      setIsPlaying(false);
+    },
+  });
 
   const startGame = () => {
     if (isPlaying) return;
@@ -35,7 +42,7 @@ const App = ({ initialCount = 30 }) => {
     setIsCompleted(false);
     setCards(createCards);
     setScore(0);
-    resetTimer();
+    resetCount();
     setIsPlaying(true);
     toast.info('Game is started. Enjoy!');
   };
@@ -48,19 +55,17 @@ const App = ({ initialCount = 30 }) => {
     toast.info(`Game is stopped. Your score was ${score}`);
   };
 
-  const currentTime = () => timerRef.current.count();
-
-  const resetTimer = () => timerRef.current.resetCount();
-
   // determines whether or not a card pair matches and update the state of the cards
   const judgePair = (card, otherCard) => {
     const isMatched = card.symbol === otherCard.symbol && card.uuid !== otherCard.uuid;
     if (isMatched) toast.success('Matched');
 
+    // TODO: disable clicking more than 2 cards; currently possible
+    // TODO: adjust delay time after the above-mentioned is fixed
     // delay animation so that it is human-visible
     setTimeout(() => {
       if (isMatched) {
-        setScore(score + currentTime());
+        setScore(score + count);
         const isFinalPair = cards.filter(card => card.isTaken).length === cards.length - 2;
         if (isFinalPair) {
           onComplete();
@@ -70,7 +75,7 @@ const App = ({ initialCount = 30 }) => {
         flipCardFacedown(card);
         flipCardFacedown(otherCard);
       }
-    }, 400);
+    }, 1111);
   };
 
   const flipCard = ({ uuid }, isFaceup) =>
@@ -88,7 +93,7 @@ const App = ({ initialCount = 30 }) => {
     );
 
   const onComplete = () => {
-    const bonus = currentTime() * 100;
+    const bonus = count * 100;
     const finalScore = score + bonus;
     toast.success(`Bonus score for completion: ${bonus}`, { autoClose: 5000 });
     setScore(finalScore);
@@ -96,13 +101,7 @@ const App = ({ initialCount = 30 }) => {
       () => toast.success(`Congratulations! Your score was ${finalScore}.`, { autoClose: 10000 }),
       600,
     );
-    resetTimer();
-    setIsCompleted(true);
-    setIsPlaying(false);
-  };
-
-  const onZero = () => {
-    toast.info(`Time is up! Your score was ${score}.`, { autoClose: 10000 });
+    resetCount();
     setIsCompleted(true);
     setIsPlaying(false);
   };
@@ -154,26 +153,18 @@ const App = ({ initialCount = 30 }) => {
               </a>
             </Col>
             <Col style={{ position: 'relative' }}>
-              <Timer
-                ref={timerRef}
-                initialCount={initialCount}
-                onZero={onZero}
-                isTicking={isPlaying}
-                renderTime={seconds => (
-                  <code
-                    className="p-1"
-                    style={{
-                      position: 'absolute',
-                      bottom: 0,
-                      right: 0,
-                      fontSize: '100%',
-                    }}
-                  >
-                    <FontAwesomeIcon icon={['fas', 'clock']} fixedWidth={true} />
-                    {padNumber(seconds, 6)}
-                  </code>
-                )}
-              />
+              <code
+                className="p-1"
+                style={{
+                  position: 'absolute',
+                  bottom: 0,
+                  right: 0,
+                  fontSize: '100%',
+                }}
+              >
+                <FontAwesomeIcon icon={['fas', 'clock']} fixedWidth={true} />
+                {padNumber(count, 6)}
+              </code>
             </Col>
           </Row>
         </CardBody>
