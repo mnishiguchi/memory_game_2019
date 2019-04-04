@@ -1,13 +1,96 @@
 import React from 'react';
-import { Col } from 'reactstrap';
+import { Row, Col, Card, CardBody, Button } from 'reactstrap';
 import { ToastContainer } from 'react-toastify';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { library } from '@fortawesome/fontawesome-svg-core';
+import { faClock } from '@fortawesome/free-solid-svg-icons';
+
+import padNumber from '../lib/padNumber';
+import logo from '../assets/logo.png';
 import 'react-toastify/dist/ReactToastify.css';
 
-const AppLayout = ({ children }) => {
+// Build a Library to Reference Icons Throughout Your App
+// https://github.com/FortAwesome/react-fontawesome
+library.add(faClock);
+
+const AppLayout = ({ isPlaying, score, time, renderBoard, onStart, onStop }) => {
   return (
     <div style={{ backgroundColor: '#f8f9fa', width: '100vw', height: '100vh' }}>
       <Col sm="12" md={{ size: 6, offset: 3 }} style={{ padding: 0 }}>
-        {children}
+        <Card>
+          <CardBody>
+            <Row
+              style={{
+                textAlign: 'center',
+              }}
+            >
+              <Col
+                style={{
+                  position: 'relative',
+                }}
+              >
+                <code
+                  className="p-1"
+                  style={{
+                    position: 'absolute',
+                    bottom: 0,
+                    left: 0,
+                    fontSize: '100%',
+                  }}
+                >
+                  {padNumber(score, 6)}
+                </code>
+              </Col>
+              <Col>
+                <a href="http://mnishiguchi.com">
+                  <img
+                    src={logo}
+                    className="AppHeader__logo"
+                    alt="logo"
+                    style={{
+                      animationPlayState: isPlaying ? 'running' : 'paused',
+                    }}
+                  />
+                </a>
+              </Col>
+              <Col
+                style={{
+                  position: 'relative',
+                }}
+              >
+                <code
+                  className="p-1"
+                  style={{
+                    position: 'absolute',
+                    bottom: 0,
+                    right: 0,
+                    fontSize: '100%',
+                  }}
+                >
+                  <FontAwesomeIcon icon={['fas', 'clock']} fixedWidth={true} />
+                  {padNumber(time, 6)}
+                </code>
+              </Col>
+            </Row>
+          </CardBody>
+
+          {renderBoard()}
+
+          <CardBody>
+            <Row className="py-3">
+              <Col>
+                <Button outline block color="danger" onClick={onStop} disabled={!isPlaying}>
+                  Stop
+                </Button>
+              </Col>
+              <Col>
+                <Button block color="primary" onClick={onStart} disabled={isPlaying}>
+                  Start
+                </Button>
+              </Col>
+            </Row>
+          </CardBody>
+        </Card>
       </Col>
 
       <ToastContainer

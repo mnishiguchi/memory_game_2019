@@ -45,7 +45,7 @@ const Board = ({
         gridGap: '1px 1px',
         padding: '1px',
         textAlign: 'center',
-        backgroundColor: '#555',
+        backgroundColor: '#ddd',
       }}
     >
       {!isPlaying ? (
@@ -70,7 +70,7 @@ const Board = ({
         <div
           key={card.uuid}
           style={{
-            border: '1px solid #666',
+            border: '1px solid #999',
             backgroundColor: cardBackgroundColor(card),
             color: cardColor(card),
             fontSize: '4rem',
@@ -110,5 +110,7 @@ export const createCards = () => {
   const symbols = shuffleArray(availableSymbols).slice(0, 8);
   return shuffleArray([...symbols, ...symbols.slice(0)]).map(symbol => createCard(symbol));
 };
+
+export const initialcards = createCards().map(card => ({ ...card, isTaken: true }));
 
 export default Board;
