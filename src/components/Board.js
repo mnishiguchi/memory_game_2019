@@ -3,7 +3,6 @@ import PropTypes from 'prop-types';
 import * as shortid from 'shortid';
 
 import shuffleArray from '../lib/shuffleArray';
-import availableSymbols from '../data/availableSymbols';
 
 const noop = () => {};
 
@@ -27,12 +26,25 @@ const cardColor = card => {
   return '#575d64';
 };
 
-const Board = ({
-  cards = createCards(),
-  isPlaying = false,
-  onCardClicked = noop,
-  renderNotice = noop,
-}) => {
+export const createShuffledCardPairs = (symbolList, length = 16) => {
+  if (!symbolList) throw new Error('symbolList must be provided');
+  const halfLength = length / 2;
+  if (symbolList.length < halfLength) {
+    throw new Error(`symbolList must be longer than ${halfLength}`);
+  }
+
+  const pickedSymbols = shuffleArray(symbolList).slice(0, halfLength);
+  const symbolPairs = [...pickedSymbols, ...pickedSymbols.slice(0)];
+  const cards = symbolPairs.map(symbol => ({
+    uuid: shortid.generate(),
+    isFaceup: false,
+    isTaken: false,
+    symbol,
+  }));
+  return shuffleArray(cards);
+};
+
+const Board = ({ cards, isPlaying = false, onCardClicked = noop, renderNotice = noop }) => {
   return (
     <div
       style={{
@@ -69,6 +81,9 @@ const Board = ({
       {cards.map(card => (
         <div
           key={card.uuid}
+          data-symbol={card.symbol}
+          data-faceup={!!card.isFaceup}
+          data-taken={!!card.isTaken}
           style={{
             border: '1px solid #999',
             backgroundColor: cardBackgroundColor(card),
@@ -93,24 +108,10 @@ Board.propTypes = {
       isTaken: PropTypes.bool.isRequired,
       symbol: PropTypes.string.isRequired,
     }),
-  ),
+  ).isRequired,
   isPlaying: PropTypes.bool,
   renderNotice: PropTypes.func,
   onCardClicked: PropTypes.func,
 };
-
-const createCard = symbol => ({
-  uuid: shortid.generate(),
-  isFaceup: false,
-  isTaken: false,
-  symbol,
-});
-
-export const createCards = () => {
-  const symbols = shuffleArray(availableSymbols).slice(0, 8);
-  return shuffleArray([...symbols, ...symbols.slice(0)]).map(symbol => createCard(symbol));
-};
-
-export const initialcards = createCards().map(card => ({ ...card, isTaken: true }));
 
 export default Board;

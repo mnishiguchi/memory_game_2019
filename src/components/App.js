@@ -3,55 +3,57 @@ import { toast } from 'react-toastify';
 
 import useCountdownTimer from '../lib/useCountdownTimer';
 import AppLayout from './AppLayout';
-import Board, { initialcards, createCards } from './Board';
+import Board, { createShuffledCardPairs } from './Board';
 import './App.css';
 
 // Top level component of the memory game app. Manages game plays.
-const App = ({ initialCount = 30 }) => {
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [isJugding, setIsJugding] = useState(false);
-  const [isCompleted, setIsCompleted] = useState(true);
-  const [cards, setCards] = useState(initialcards);
-  const [score, setScore] = useState(0);
-  const [firstCard, setFirstCard] = useState(null);
+const App = ({ initialCount = 30, symbolList = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'] }) => {
+  const dealCards = () => createShuffledCardPairs(symbolList);
+
+  const [isPlaying, updateIsPlaying] = useState(false);
+  const [isJugding, updateIsJugding] = useState(false);
+  const [isCompleted, updateIsCompleted] = useState(true);
+  const [cards, updateCards] = useState(dealCards().map(card => ({ ...card, isTaken: true })));
+  const [score, updateScore] = useState(0);
+  const [firstCard, updateFirstCard] = useState(null);
   const { count, resetCount } = useCountdownTimer({
     initialCount,
     isTicking: isPlaying,
     onZero: () => {
-      setIsPlaying(false);
+      updateIsPlaying(false);
       toast.info(`Time is up! Your score was ${score}.`, { autoClose: 10000 });
-      setIsCompleted(true);
+      updateIsCompleted(true);
     },
   });
 
   const startGame = () => {
     if (isPlaying) return;
 
-    setIsCompleted(false);
-    setCards(createCards);
-    setScore(0);
+    updateIsCompleted(false);
+    updateCards(dealCards);
+    updateScore(0);
     resetCount();
-    setIsPlaying(true);
+    updateIsPlaying(true);
     toast.info('Game is started. Enjoy!');
   };
 
   const stopGame = () => {
     if (!isPlaying || isCompleted) return;
 
-    setIsPlaying(false);
-    setIsCompleted(true);
+    updateIsPlaying(false);
+    updateIsCompleted(true);
     toast.info(`Game is stopped. Your score was ${score}`);
   };
 
   const flipCardByUUID = (uuid, { isFaceup }) =>
-    setCards(prev => prev.map(card => (card.uuid === uuid ? { ...card, isFaceup } : card)));
+    updateCards(prev => prev.map(card => (card.uuid === uuid ? { ...card, isFaceup } : card)));
 
   const flipCardFaceup = ({ uuid }) => flipCardByUUID(uuid, { isFaceup: true });
 
   const flipCardFacedown = ({ uuid }) => flipCardByUUID(uuid, { isFaceup: false });
 
   const setSymbolTaken = symbol => {
-    setCards(prev =>
+    updateCards(prev =>
       prev.map(card =>
         card.symbol === symbol ? { ...card, isTaken: true, isFaceup: true } : card,
       ),
@@ -69,17 +71,17 @@ const App = ({ initialCount = 30 }) => {
   };
 
   const onComplete = () => {
-    setIsPlaying(false);
+    updateIsPlaying(false);
     const bonus = count * 100;
     const finalScore = score + bonus;
     toast.success(`Bonus score for completion: ${bonus}`, { autoClose: 5000 });
-    setScore(finalScore);
+    updateScore(finalScore);
     setTimeout(
       () => toast.success(`Congratulations! Your score was ${finalScore}.`, { autoClose: 10000 }),
       600,
     );
     resetCount();
-    setIsCompleted(true);
+    updateIsCompleted(true);
   };
 
   const onCardClicked = clickedCard => {
@@ -90,7 +92,7 @@ const App = ({ initialCount = 30 }) => {
 
     // first time
     if (!firstCard) {
-      setFirstCard(clickedCard);
+      updateFirstCard(clickedCard);
       return;
     }
 
@@ -98,13 +100,12 @@ const App = ({ initialCount = 30 }) => {
     if (firstCard.uuid === clickedCard.uuid) return;
 
     // second time
-    setIsJugding(true);
+    updateIsJugding(true);
     judgePair(firstCard, clickedCard).then(({ isMatched, isFinalPair }) => {
       if (isMatched) {
         toast.success('Matched');
-        setScore(prev => prev + count);
+        updateScore(prev => prev + count);
         setSymbolTaken(clickedCard.symbol);
-
         if (isFinalPair) {
           onComplete();
         }
@@ -112,9 +113,8 @@ const App = ({ initialCount = 30 }) => {
         flipCardFacedown(firstCard);
         flipCardFacedown(clickedCard);
       }
-
-      setFirstCard(null);
-      setIsJugding(false);
+      updateFirstCard(null);
+      updateIsJugding(false);
     });
   };
 

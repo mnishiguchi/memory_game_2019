@@ -38,7 +38,7 @@ const AppLayout = ({ isPlaying, score, time, renderBoard, onStart, onStop }) => 
                     fontSize: '100%',
                   }}
                 >
-                  {padNumber(score, 6)}
+                  <span data-testid="current-score">{padNumber(score, 6)}</span>
                 </code>
               </Col>
               <Col>
@@ -68,7 +68,7 @@ const AppLayout = ({ isPlaying, score, time, renderBoard, onStart, onStop }) => 
                   }}
                 >
                   <FontAwesomeIcon icon={['fas', 'clock']} fixedWidth={true} />
-                  {padNumber(time, 6)}
+                  <span data-testid="remaining-time">{padNumber(time, 6)}</span>
                 </code>
               </Col>
             </Row>
@@ -79,12 +79,25 @@ const AppLayout = ({ isPlaying, score, time, renderBoard, onStart, onStop }) => 
           <CardBody>
             <Row className="py-3">
               <Col>
-                <Button outline block color="danger" onClick={onStop} disabled={!isPlaying}>
+                <Button
+                  outline
+                  block
+                  color="danger"
+                  onClick={onStop}
+                  disabled={!isPlaying}
+                  data-testid="stop-button"
+                >
                   Stop
                 </Button>
               </Col>
               <Col>
-                <Button block color="primary" onClick={onStart} disabled={isPlaying}>
+                <Button
+                  block
+                  color="primary"
+                  onClick={onStart}
+                  disabled={isPlaying}
+                  data-testid="start-button"
+                >
                   Start
                 </Button>
               </Col>
