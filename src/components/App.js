@@ -1,63 +1,74 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { toast } from 'react-toastify';
 
+import availableSymbols from '../data/availableSymbols';
 import useCountdownTimer from '../lib/useCountdownTimer';
+import { useAppStore } from '../store/appStore';
 import AppLayout from './AppLayout';
 import Board, { createShuffledCardPairs } from './Board';
 import './App.css';
 
+// public context that is used to share state with child components
+export const AppContext = React.createContext({});
+
 // Top level component of the memory game app. Manages game plays.
-const App = ({ initialCount = 30, symbolList = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'] }) => {
+// In order to make test easy, we inject symbols from outside of the component.
+const App = ({ initialCount = 30, symbolList = availableSymbols }) => {
   const dealCards = () => createShuffledCardPairs(symbolList);
 
-  const [isPlaying, updateIsPlaying] = useState(false);
-  const [isJugding, updateIsJugding] = useState(false);
-  const [isCompleted, updateIsCompleted] = useState(true);
-  const [cards, updateCards] = useState(dealCards().map(card => ({ ...card, isTaken: true })));
-  const [score, updateScore] = useState(0);
-  const [firstCard, updateFirstCard] = useState(null);
-  const { count, resetCount } = useCountdownTimer({
+  // initialize app state
+  const initialState = {
+    isPlaying: false,
+    isCompleted: false,
+    isJudging: false,
+    cards: dealCards().map(card => ({ ...card, isTaken: true })),
+    firstCard: null,
+    score: 0,
+  };
+  const appStore = useAppStore(initialState);
+  const {
+    isPlaying,
+    isCompleted,
+    isJudging,
+    cards,
+    firstCard,
+    score,
+    updateCards,
+    updateScore,
+    startGame,
+    endGame,
+    startJudging,
+    endJudging,
+    selectFirstCard,
+  } = appStore;
+
+  // initialize timer
+  const { count, clearCount, startTimer, stopTimer } = useCountdownTimer({
     initialCount,
-    isTicking: isPlaying,
     onZero: () => {
-      updateIsPlaying(false);
+      endGame();
       toast.info(`Time is up! Your score was ${score}.`, { autoClose: 10000 });
-      updateIsCompleted(true);
     },
   });
 
-  const startGame = () => {
-    if (isPlaying) return;
+  const flipCards = (uuids, { isFaceup }) => {
+    const updatedCards = cards.map(card =>
+      uuids.includes(card.uuid) ? { ...card, isFaceup } : card,
+    );
 
-    updateIsCompleted(false);
-    updateCards(dealCards);
-    updateScore(0);
-    resetCount();
-    updateIsPlaying(true);
-    toast.info('Game is started. Enjoy!');
+    updateCards(updatedCards);
   };
 
-  const stopGame = () => {
-    if (!isPlaying || isCompleted) return;
+  const flipCard = (uuid, { isFaceup }) => flipCards([uuid], { isFaceup });
 
-    updateIsPlaying(false);
-    updateIsCompleted(true);
-    toast.info(`Game is stopped. Your score was ${score}`);
-  };
-
-  const flipCardByUUID = (uuid, { isFaceup }) =>
-    updateCards(prev => prev.map(card => (card.uuid === uuid ? { ...card, isFaceup } : card)));
-
-  const flipCardFaceup = ({ uuid }) => flipCardByUUID(uuid, { isFaceup: true });
-
-  const flipCardFacedown = ({ uuid }) => flipCardByUUID(uuid, { isFaceup: false });
+  const flipCardFaceup = ({ uuid }) => flipCard(uuid, { isFaceup: true });
 
   const setSymbolTaken = symbol => {
-    updateCards(prev =>
-      prev.map(card =>
-        card.symbol === symbol ? { ...card, isTaken: true, isFaceup: true } : card,
-      ),
+    const updatedCards = cards.map(card =>
+      card.symbol === symbol ? { ...card, isTaken: true, isFaceup: true } : card,
     );
+
+    updateCards(updatedCards);
   };
 
   const judgePair = (firstCard, secondCard) => {
@@ -70,8 +81,25 @@ const App = ({ initialCount = 30, symbolList = ['A', 'B', 'C', 'D', 'E', 'F', 'G
     });
   };
 
+  const onStart = () => {
+    if (isPlaying) return;
+
+    const newCards = dealCards();
+    startGame(newCards);
+    clearCount();
+    startTimer();
+    toast.info('Game is started. Enjoy!');
+  };
+
+  const onStop = () => {
+    if (!isPlaying || isCompleted) return;
+
+    endGame();
+    stopTimer();
+    toast.info(`Game is stopped. Your score was ${score}`);
+  };
+
   const onComplete = () => {
-    updateIsPlaying(false);
     const bonus = count * 100;
     const finalScore = score + bonus;
     toast.success(`Bonus score for completion: ${bonus}`, { autoClose: 5000 });
@@ -80,19 +108,19 @@ const App = ({ initialCount = 30, symbolList = ['A', 'B', 'C', 'D', 'E', 'F', 'G
       () => toast.success(`Congratulations! Your score was ${finalScore}.`, { autoClose: 10000 }),
       600,
     );
-    resetCount();
-    updateIsCompleted(true);
+    clearCount();
+    endGame();
   };
 
-  const onCardClicked = clickedCard => {
+  const onCardClicked = async clickedCard => {
     if (!isPlaying) return;
-    if (isJugding) return;
+    if (isJudging) return;
 
     flipCardFaceup(clickedCard);
 
     // first time
     if (!firstCard) {
-      updateFirstCard(clickedCard);
+      selectFirstCard(clickedCard);
       return;
     }
 
@@ -100,40 +128,32 @@ const App = ({ initialCount = 30, symbolList = ['A', 'B', 'C', 'D', 'E', 'F', 'G
     if (firstCard.uuid === clickedCard.uuid) return;
 
     // second time
-    updateIsJugding(true);
-    judgePair(firstCard, clickedCard).then(({ isMatched, isFinalPair }) => {
+    startJudging();
+    await judgePair(firstCard, clickedCard).then(({ isMatched, isFinalPair }) => {
       if (isMatched) {
-        toast.success('Matched');
-        updateScore(prev => prev + count);
+        const updatedScore = score + count;
+        toast.success(`Matched: ${updatedScore}`);
+        updateScore(updatedScore);
         setSymbolTaken(clickedCard.symbol);
-        if (isFinalPair) {
-          onComplete();
-        }
+        isFinalPair && onComplete();
       } else {
-        flipCardFacedown(firstCard);
-        flipCardFacedown(clickedCard);
+        flipCards([firstCard.uuid, clickedCard.uuid], { isFaceup: false });
       }
-      updateFirstCard(null);
-      updateIsJugding(false);
     });
+    endJudging();
   };
 
   return (
-    <AppLayout
-      isPlaying={isPlaying}
-      score={score}
-      time={count}
-      onStart={startGame}
-      onStop={stopGame}
-      renderBoard={() => (
+    <AppContext.Provider value={{ ...appStore, count }}>
+      <AppLayout onStart={onStart} onStop={onStop}>
         <Board
           cards={cards}
           onCardClicked={onCardClicked}
           isPlaying={isPlaying}
           isCompleted={isCompleted}
         />
-      )}
-    />
+      </AppLayout>
+    </AppContext.Provider>
   );
 };
 

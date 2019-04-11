@@ -4,16 +4,19 @@ import { ToastContainer } from 'react-toastify';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { library } from '@fortawesome/fontawesome-svg-core';
 import { faClock } from '@fortawesome/free-solid-svg-icons';
+import 'react-toastify/dist/ReactToastify.css';
 
 import padNumber from '../lib/padNumber';
 import logo from '../assets/logo.png';
-import 'react-toastify/dist/ReactToastify.css';
+import { AppContext } from './App';
 
 // Build a Library to Reference Icons Throughout Your App
 // https://github.com/FortAwesome/react-fontawesome
 library.add(faClock);
 
-const AppLayout = ({ isPlaying, score, time, renderBoard, onStart, onStop }) => {
+const AppLayout = ({ children, onStart, onStop }) => {
+  const { isPlaying, score, count } = React.useContext(AppContext);
+
   return (
     <div style={{ backgroundColor: '#f8f9fa', width: '100vw', height: '100vh' }}>
       <Col sm="12" md={{ size: 6, offset: 3 }} style={{ padding: 0 }}>
@@ -68,13 +71,13 @@ const AppLayout = ({ isPlaying, score, time, renderBoard, onStart, onStop }) => 
                   }}
                 >
                   <FontAwesomeIcon icon={['fas', 'clock']} fixedWidth={true} />
-                  <span data-testid="remaining-time">{padNumber(time, 6)}</span>
+                  <span data-testid="remaining-time">{padNumber(count, 6)}</span>
                 </code>
               </Col>
             </Row>
           </CardBody>
 
-          {renderBoard()}
+          {children}
 
           <CardBody>
             <Row className="py-3">

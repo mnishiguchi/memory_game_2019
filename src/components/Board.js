@@ -44,7 +44,7 @@ export const createShuffledCardPairs = (symbolList, length = 16) => {
   return shuffleArray(cards);
 };
 
-const Board = ({ cards, isPlaying = false, onCardClicked = noop, renderNotice = noop }) => {
+const Board = ({ cards = [], isPlaying = false, onCardClicked = noop, renderNotice = noop }) => {
   return (
     <div
       style={{

@@ -2,21 +2,18 @@ import { useState } from 'react';
 
 import useInterval from './useInterval';
 
-const noop = () => {};
-
 // https://overreacted.io/making-setinterval-declarative-with-react-hooks/
-function useCountdownTimer({ initialCount = 5, isTicking = false, onZero = noop }) {
+export default function({ initialCount = 5, onZero = () => {} }) {
   const [count, setCount] = useState(initialCount);
+  const [isTicking, updateIsTicking] = useState(false);
 
   useInterval(() => {
     if (isTicking) {
       if (count > 1) {
         setCount(count - 1);
       } else if (count === 1) {
+        onZero();
         setCount(0);
-        if (onZero) {
-          onZero();
-        }
       }
     }
   }, 1000);
@@ -24,8 +21,8 @@ function useCountdownTimer({ initialCount = 5, isTicking = false, onZero = noop 
   return {
     count,
     setCount,
-    resetCount: () => setCount(initialCount),
+    clearCount: () => setCount(initialCount),
+    startTimer: () => updateIsTicking(true),
+    stopTimer: () => updateIsTicking(false),
   };
 }
-
-export default useCountdownTimer;
